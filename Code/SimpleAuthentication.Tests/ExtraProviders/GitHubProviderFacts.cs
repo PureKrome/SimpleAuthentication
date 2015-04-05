@@ -19,7 +19,7 @@ namespace SimpleAuthentication.Tests.ExtraProviders
             public void GivenARedirectUrl_GetRedirectToAuthenticateSettings_ReturnsARedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = TestHelpers.AuthenticationProviders["github"];
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GitHubProvider.Name);
                 var callbackUri = new Uri("http://www.mysite.com/pew/pew?provider=github");
 
                 // Act.
@@ -47,9 +47,6 @@ namespace SimpleAuthentication.Tests.ExtraProviders
             public async Task GivenAValidResponse_AuthenticateClientAsync_ReturnsAnAuthenticatedClient()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("zdskjhf&*^65sdfh/.<>\\sdf",
-                    "szdkjhg&^%178~/.,<>\\[]{}sdsf sd df s");
-                var provider = new GitHubProvider(providerParams);
                 const string stateKey = "state";
                 const string state = "adyi#&(*,./,.!~`  uhj97&^*&shdgf\\//////\\dsf";
                 var querystring = new Dictionary<string, string>
@@ -62,12 +59,13 @@ namespace SimpleAuthentication.Tests.ExtraProviders
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson);
                 var userInformationJson = File.ReadAllText("Sample Data\\GitHub-UserInfoResult-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://github.com/login/oauth/access_token", accessTokenResponse},
                         {"https://api.github.com/user?access_token=1a048d8e06ee61de21625d2820", userInformationResponse}
                     });
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GitHubProvider.Name, messageHandler);
 
                 // Act.
                 var result = await provider.AuthenticateClientAsync(querystring, state, redirectUrl);

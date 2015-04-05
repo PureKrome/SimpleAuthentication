@@ -45,7 +45,7 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
                 }
             });
 
-            //CookieBasedSessions.Enable(bootstrapper);
+            CookieBasedSessions.Enable(bootstrapper);
 
             if (session != null)
             {

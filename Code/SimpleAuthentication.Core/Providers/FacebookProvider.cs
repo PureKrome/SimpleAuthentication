@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SimpleAuthentication.Core.Exceptions;
@@ -14,7 +15,9 @@ namespace SimpleAuthentication.Core.Providers
 
     public class FacebookProvider : OAuth20Provider
     {
-        public FacebookProvider(ProviderParams providerParams) : base(providerParams)
+        public FacebookProvider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null)
+            : base(providerParams, httpMessageHandler)
         {
             DisplayType = DisplayType.Unknown;
             IsMobile = false;

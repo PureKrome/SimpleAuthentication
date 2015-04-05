@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Shouldly;
 using SimpleAuthentication.Core;
-using SimpleAuthentication.Core.Providers;
 using WorldDomination.Net.Http;
 using Xunit;
 
@@ -19,9 +18,8 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrl_GetRedirectToAuthenticateSettingsFacts_ReturnsSomeRedirectToAUthenticateSettings()
             {
                 // Arramge.
-                var providerParams = new ProviderParams("00000000400ED488",
-                    "OAc-A5hoXE0eOolc6aczF2xvnq5sLfRr");
-                var provider = new WindowsLiveProvider(providerParams);
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.WindowsLiveProvider.Name);
+
                 var callbackUri = new Uri("http://www.localhost.me?provider=windowsLive");
 
                 // Act.
@@ -30,7 +28,7 @@ namespace SimpleAuthentication.Tests.Providers
                 // Assert.
                 result.State.ShouldNotBeNullOrEmpty();
                 result.RedirectUri.AbsoluteUri.ShouldBe(
-                    string.Format("https://login.live.com/oauth20_authorize.srf?client_id=00000000400ED488&redirect_uri=http%3A%2F%2Fwww.localhost.me%2F%3Fprovider%3DwindowsLive&response_type=code&scope=wl.signin%2Cwl.basic%2Cwl.emails&state={0}",
+                    string.Format("https://login.live.com/oauth20_authorize.srf?client_id=some%20%2A%2A%20key&redirect_uri=http%3A%2F%2Fwww.localhost.me%2F%3Fprovider%3DwindowsLive&response_type=code&scope=wl.signin%2Cwl.basic%2Cwl.emails&state={0}",
                     result.State));
             }
         }
@@ -41,9 +39,6 @@ namespace SimpleAuthentication.Tests.Providers
             public async Task GivenARepsonse_AuthenticateClientAsync_ReturnsAnAuthenticatedClient()
             {
                 // Arramge.
-                var providerParams = new ProviderParams("00000000400ED488",
-                    "OAc-A5hoXE0eOolc6aczF2xvnq5sLfRr");
-                var provider = new WindowsLiveProvider(providerParams);
                 var callbackUri = new Uri("http://www.localhost.me?provider=windowsLive");
                 const string stateKey = "state";
                 const string state = "adyiuhj97&^*&shdgf\\//////\\dsf";
@@ -56,7 +51,7 @@ namespace SimpleAuthentication.Tests.Providers
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson);
                 var userInformationJson = File.ReadAllText("Sample Data\\WindowsLive-UserInfo-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://login.live.com/oauth20_token.srf", accessTokenResponse},
@@ -65,6 +60,7 @@ namespace SimpleAuthentication.Tests.Providers
                             userInformationResponse
                         }
                     });
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.WindowsLiveProvider.Name, messageHandler);
 
                 // Act.
                 var result = await provider.AuthenticateClientAsync(querystring,

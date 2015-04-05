@@ -131,6 +131,7 @@ namespace Nancy.SimpleAuthentication
                 var redirectionResult = _webApplicationService.RedirectToProvider(redirectToProviderData);
 
                 // Remember any important information for later, after we've returned back here.
+                // TODO: Should this be an a cache (which could then be distributed or local, etc) ?
                 Session[SessionKeyState] = redirectionResult.CacheData;
 
                 // Now redirect :)

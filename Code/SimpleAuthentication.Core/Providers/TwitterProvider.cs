@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Net.Http;
 using Newtonsoft.Json;
 using SimpleAuthentication.Core.Exceptions;
 using SimpleAuthentication.Core.Providers.OAuth.V10a;
@@ -10,8 +10,9 @@ namespace SimpleAuthentication.Core.Providers
 {
     public class TwitterProvider : OAuth10Provider
     {
-        public TwitterProvider(ProviderParams providerParams)
-            : base(providerParams)
+        public TwitterProvider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null)
+            : base(providerParams, httpMessageHandler)
         {
         }
 

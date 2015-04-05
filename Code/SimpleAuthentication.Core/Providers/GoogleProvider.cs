@@ -15,7 +15,8 @@ namespace SimpleAuthentication.Core.Providers
 {
     public class GoogleProvider : OAuth20Provider
     {
-        public GoogleProvider(ProviderParams providerParams) : base(providerParams)
+        public GoogleProvider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null) : base(providerParams, httpMessageHandler)
         {
             ScopeSeparator = " ";
         }

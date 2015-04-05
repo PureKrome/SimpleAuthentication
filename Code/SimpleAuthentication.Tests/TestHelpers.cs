@@ -7,12 +7,13 @@ using SimpleAuthentication.Core;
 using SimpleAuthentication.Core.Config;
 using SimpleAuthentication.Core.Providers;
 using SimpleAuthentication.ExtraProviders;
+using WorldDomination.Net.Http;
 
 namespace SimpleAuthentication.Tests
 {
     public static class TestHelpers
     {
-        private static IList<Provider> _providers;
+        private static readonly Lazy<IList<Provider>> Providers = new Lazy<IList<Provider>>(CreateProviders);
         public const string ConfigProviderKey = "some ** key";
         public const string ConfigProviderSecret = "some secret";
 
@@ -34,14 +35,34 @@ namespace SimpleAuthentication.Tests
             return result.ToString();
         }
 
+        public static Provider GoogleProvider
+        {
+            get { return Providers.Value.Single(x => x.Name == "google"); }
+        }
+
+        public static Provider FacebookProvider
+        {
+            get { return Providers.Value.Single(x => x.Name == "facebook"); }
+        }
+
+        public static Provider TwitterProvider
+        {
+            get { return Providers.Value.Single(x => x.Name == "twitter"); }
+        }
+
         public static Provider InstagramProvider
         {
-            get { return Providers.Single(x => x.Name == "instagram"); }
+            get { return Providers.Value.Single(x => x.Name == "instagram"); }
         }
         
         public static Provider GitHubProvider
         {
-            get { return Providers.Single(x => x.Name == "github"); }
+            get { return Providers.Value.Single(x => x.Name == "github"); }
+        }
+
+        public static Provider WindowsLiveProvider
+        {
+            get { return Providers.Value.Single(x => x.Name == "windowslive"); }
         }
 
         public static Configuration ConfigurationProviders
@@ -50,7 +71,7 @@ namespace SimpleAuthentication.Tests
             {
                 return new Configuration
                 {
-                    Providers = Providers
+                    Providers = Providers.Value
                 };
             }
         }
@@ -65,44 +86,69 @@ namespace SimpleAuthentication.Tests
             return configuration;
         }
 
-        public static IDictionary<string, IAuthenticationProvider> AuthenticationProviders
+        public static IDictionary<string, IAuthenticationProvider> GetAuthenticationProviders(
+            FakeHttpMessageHandler messageHandler = null)
         {
-            get
+            var providerParams = new ProviderParams(ConfigProviderKey, ConfigProviderSecret);
+
+            return new Dictionary<string, IAuthenticationProvider>
             {
-                var providerParams = new ProviderParams(ConfigProviderKey, ConfigProviderSecret);
-                return new Dictionary<string, IAuthenticationProvider>
                 {
-                    {
-                        "google",
-                        new GoogleProvider(providerParams)
-                    },
-                    {
-                        "facebook",
-                        new FacebookProvider(providerParams)
-                    },
-                    {
-                        InstagramProvider.Name,
-                        new InstagramProvider(providerParams)
-                    },
-                    {
-                        GitHubProvider.Name,
-                        new GitHubProvider(providerParams)
-                    }
-                };
-            }
+                    GoogleProvider.Name,
+                    new GoogleProvider(providerParams, messageHandler)
+                },
+                {
+                    FacebookProvider.Name,
+                    new FacebookProvider(providerParams, messageHandler)
+                },
+                {
+                    TwitterProvider.Name,
+                    new TwitterProvider(providerParams, messageHandler)
+                },
+                {
+                    InstagramProvider.Name,
+                    new InstagramProvider(providerParams, messageHandler)
+                },
+                {
+                    GitHubProvider.Name,
+                    new GitHubProvider(providerParams, messageHandler)
+                },
+
+                {
+                    WindowsLiveProvider.Name,
+                    new WindowsLiveProvider(providerParams, messageHandler)
+                },
+            };
         }
 
-        private static IList<Provider> Providers
+        public static IAuthenticationProvider GetAuthenticationProvider(string key,
+            FakeHttpMessageHandler messageHandler = null)
         {
-            get
+            key.ShouldNotBeNullOrEmpty();
+
+            var providers = GetAuthenticationProviders(messageHandler);
+            if (providers.ContainsKey(key))
             {
-                return _providers ?? (_providers = new List<Provider>
-                {
-                    CreateProvider("google"),
-                    CreateProvider("instagram"),
-                    CreateProvider("github")
-                });
+                return providers[key];
             }
+
+            var errorMessage = string.Format("Provider '{0}' not handled. Please add an if-check to handle this.", key);
+            throw new Exception(errorMessage);
+        }
+
+        private static IList<Provider> CreateProviders()
+        {
+            var providers = new List<Provider>
+            {
+                CreateProvider("google"),
+                CreateProvider("facebook"),
+                CreateProvider("twitter"),
+                CreateProvider("instagram"),
+                CreateProvider("github"),
+                CreateProvider("windowslive")
+            };
+
+            return providers;
         }
 
         private static Provider CreateProvider(string name)

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using SimpleAuthentication.Core.Config;
 using SimpleAuthentication.Core.Exceptions;
 using SimpleAuthentication.Core.Providers;
@@ -10,8 +11,11 @@ namespace SimpleAuthentication.Core
 {
     public class AuthenticationProviderFactory : IAuthenticationProviderFactory
     {
+        private readonly HttpMessageHandler _httpMessageHandler;
+
         public AuthenticationProviderFactory(IConfigService configService,
-            IProviderScanner providerScanner)
+            IProviderScanner providerScanner,
+            HttpMessageHandler httpMessageHandler = null)
         {
             if (configService == null)
             {
@@ -22,6 +26,9 @@ namespace SimpleAuthentication.Core
             {
                 throw new ArgumentNullException("providerScanner");
             }
+
+            // NOTE: Optional message handler. This is used mainly for unit testing purposes.
+            _httpMessageHandler = httpMessageHandler;
 
             TraceManager = new Lazy<ITraceManager>(() => new TraceManager()).Value;
 
@@ -85,7 +92,7 @@ namespace SimpleAuthentication.Core
             }
         }
 
-        private static IAuthenticationProvider LoadProvider(Provider configProvider,
+        private IAuthenticationProvider LoadProvider(Provider configProvider,
             IList<Type> discoveredProviders)
         {
             if (configProvider == null)
@@ -99,7 +106,7 @@ namespace SimpleAuthentication.Core
                 throw new ArgumentNullException("discoveredProviders");
             }
 
-            string configProviderName = configProvider.Name.ToLowerInvariant();
+            var configProviderName = configProvider.Name.ToLowerInvariant();
 
             var exisitingProvider = discoveredProviders
                 .SingleOrDefault(x => x.Name.ToLowerInvariant().StartsWith(configProviderName));
@@ -116,17 +123,26 @@ namespace SimpleAuthentication.Core
 
             IAuthenticationProvider authenticationProvider = null;
 
-            // Make sure we have a provider with the correct constructor parameters.
-            // How? If a person creates their own provider and doesn't offer a constructor
-            // that has a sigle ProviderParams, then we're stuffed. So we need to help them.
-            if (exisitingProvider.GetConstructor(new[] { typeof(ProviderParams) }) != null)
-            {
-                var parameters = new ProviderParams(configProvider.Key,
+            var parameters = new ProviderParams(configProvider.Key,
                     configProvider.Secret,
                     configProvider.Scopes.ScopesToCollection());
 
+            // Make sure we have a provider with the correct constructor parameters.
+            // How? If a person creates their own provider and doesn't offer a constructor
+            // that has a sigle ProviderParams -or- a ProviderParams and MessageHandler, 
+            // then we're stuffed. So we need to help them.
+            if (exisitingProvider.GetConstructor(new[] { typeof(ProviderParams) }) != null)
+            {
                 authenticationProvider =
                     Activator.CreateInstance(exisitingProvider, parameters) as IAuthenticationProvider;
+            }
+
+            else if (exisitingProvider.GetConstructor(
+                new[] {typeof (ProviderParams), typeof (HttpMessageHandler)}) != null)
+            {
+                authenticationProvider =
+                    Activator.CreateInstance(exisitingProvider, parameters, _httpMessageHandler) as
+                        IAuthenticationProvider;
             }
 
             if (authenticationProvider == null)

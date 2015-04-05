@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SimpleAuthentication.Core;
@@ -13,7 +14,8 @@ namespace SimpleAuthentication.ExtraProviders
 {
     public class GitHubProvider : OAuth20Provider
     {
-        public GitHubProvider(ProviderParams providerParams) : base(providerParams)
+        public GitHubProvider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null) : base(providerParams, httpMessageHandler)
         {
         }
 

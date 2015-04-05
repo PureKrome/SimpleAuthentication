@@ -47,7 +47,7 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 // Arrange.
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders); 
+                    .Returns(TestHelpers.GetAuthenticationProviders()); 
                 
                 var authenticationProviderCallback = A.Fake<IAuthenticationProviderCallback>();
 
@@ -94,7 +94,7 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 // Arrange.
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders);
+                    .Returns(TestHelpers.GetAuthenticationProviders());
 
                 var authenticationProviderCallback = A.Fake<IAuthenticationProviderCallback>();
 
@@ -149,9 +149,24 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 const string redirectResultUrl = "http://www.dancedancepewpew.com/a/b/c";
                 var redirectResult = new RedirectResult(redirectResultUrl);
 
+                var accessTokenJson = File.ReadAllText("Sample Data\\Google-AccessToken-Content.json");
+                var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson);
+                var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
+                var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
+                var messageHandler = new FakeHttpMessageHandler(
+                    new Dictionary<string, HttpResponseMessage>
+                    {
+                        {"https://accounts.google.com/o/oauth2/token", accessTokenResponse},
+                        {
+                            "https://www.googleapis.com/plus/v1/people/me?access_token=ya29.MwAjlO-LAHrX3RoAAABjuR4Tt5Ctgp8PvfK5RN8RURPjQW_dYL5Hu7-hETXapw",
+                            userInformationResponse
+                        }
+                    });
+
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders);
+                    .Returns(TestHelpers.GetAuthenticationProviders(messageHandler));
+                
                 var authenticationProviderCallback = A.Fake<IAuthenticationProviderCallback>();
                 A.CallTo(() => authenticationProviderCallback.Process(A<Controller>._,
                     A<AuthenticateCallbackResult>._)).Returns(redirectResult);
@@ -166,7 +181,7 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 A.CallTo(() => request.QueryString).Returns(queryString);
                 A.CallTo(() => request.Url).Returns(new Uri("http://www.foo.com"));
 
-                var cacheData = new CacheData(TestHelpers.AuthenticationProviders.First().Value.Name, state,
+                var cacheData = new CacheData(TestHelpers.GoogleProvider.Name, state,
                     null);
                 var session = A.Fake<HttpSessionStateBase>();
                 A.CallTo(() => session["SimpleAuthentication-StateKey-427B6ED7-A803-4F18-A396-0084417B548D"])
@@ -182,20 +197,6 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 {
                     ControllerContext = controllerContext
                 };
-
-                var accessTokenJson = File.ReadAllText("Sample Data\\Google-AccessToken-Content.json");
-                var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson);
-                var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
-                var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
-                    new Dictionary<string, HttpResponseMessage>
-                    {
-                        {"https://accounts.google.com/o/oauth2/token", accessTokenResponse},
-                        {
-                            "https://www.googleapis.com/plus/v1/people/me?access_token=ya29.MwAjlO-LAHrX3RoAAABjuR4Tt5Ctgp8PvfK5RN8RURPjQW_dYL5Hu7-hETXapw",
-                            userInformationResponse
-                        }
-                    });
 
                 // Act.
                 var result = await controller.AuthenticateCallbackAsync() as RedirectResult;
@@ -242,14 +243,14 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                 // Arrange.
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders);
+                    .Returns(TestHelpers.GetAuthenticationProviders());
                 var authenticationProviderCallback = A.Fake<IAuthenticationProviderCallback>();
 
                 var request = A.Fake<HttpRequestBase>();
                 A.CallTo(() => request.QueryString).Returns(new NameValueCollection());
                 A.CallTo(() => request.Url).Returns(new Uri("http://www.foo.com"));
 
-                var cacheData = new CacheData(TestHelpers.AuthenticationProviders.First().Value.Name,
+                var cacheData = new CacheData(TestHelpers.GoogleProvider.Name,
                     "asdadsds",
                     null);
                 var session = A.Fake<HttpSessionStateBase>();
@@ -283,9 +284,22 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
             public async Task GivenAProviderAndAccessToken_GetAuthenticateMe_ReturnsSomeJson()
             {
                 // Arrange.
+                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
+
+                var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
+                var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
+                var messageHandler = new FakeHttpMessageHandler(
+                    new Dictionary<string, HttpResponseMessage>
+                    {
+                        {
+                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
+                            userInformationResponse
+                        }
+                    });
+
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders);
+                    .Returns(TestHelpers.GetAuthenticationProviders(messageHandler));
 
                 var authenticationProviderCallback = A.Fake<IAuthenticationProviderCallback>();
                 var httpContext = A.Fake<HttpContextBase>();
@@ -295,23 +309,9 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                     ControllerContext = controllerContext
                 };
 
-                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
-
-                var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
-                var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
-                    new Dictionary<string, HttpResponseMessage>
-                    {
-                        {
-                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
-                            userInformationResponse
-                        }
-                    });
-
-                const string providerKey = "google";
-
                 // Act.
-                var result = (JsonResult) await controller.AuthenticateMeAsync(providerKey, accessToken);
+                var result = (JsonResult) await controller.AuthenticateMeAsync(
+                    TestHelpers.GoogleProvider.Name, accessToken);
 
                 // Assert.
                 var data = (AuthenticatedClient) result.Data;
@@ -364,9 +364,22 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
             public async Task GivenAnExpiredAccessToken_GetAuthenticateMe_ReturnsAnError()
             {
                 // Arrange.
+                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
+
+                const string errorJson = "{ \"error\" : \"fail\" }";
+                var forbiddenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(errorJson, System.Net.HttpStatusCode.Forbidden);
+                var messageHandler = new FakeHttpMessageHandler(
+                    new Dictionary<string, HttpResponseMessage>
+                    {
+                        {
+                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
+                            forbiddenResponse
+                        }
+                    });
+
                 var authenticationProviderFactory = A.Fake<IAuthenticationProviderFactory>();
                 A.CallTo(() => authenticationProviderFactory.AuthenticationProviders)
-                    .Returns(TestHelpers.AuthenticationProviders);
+                    .Returns(TestHelpers.GetAuthenticationProviders(messageHandler));
 
                 var contentResult = new ContentResult
                 {
@@ -385,23 +398,10 @@ namespace SimpleAuthentication.Tests.WebSites.Mvc
                     ControllerContext = controllerContext
                 };
 
-                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
-
-                const string errorJson = "{ \"error\" : \"fail\" }";
-                var forbiddenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(errorJson, System.Net.HttpStatusCode.Forbidden);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
-                    new Dictionary<string, HttpResponseMessage>
-                    {
-                        {
-                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
-                            forbiddenResponse
-                        }
-                    });
-
-                const string providerKey = "google";
-
                 // Act.
-                var result = (ContentResult)await controller.AuthenticateMeAsync(providerKey, accessToken);
+                var result = (ContentResult)await controller.AuthenticateMeAsync(
+                    TestHelpers.GoogleProvider.Name, 
+                    accessToken);
 
                 // Assert.
                 result.Content.ShouldBe(contentResult.Content);

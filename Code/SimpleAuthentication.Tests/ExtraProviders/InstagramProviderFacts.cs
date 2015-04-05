@@ -19,7 +19,7 @@ namespace SimpleAuthentication.Tests.ExtraProviders
             public void GivenARedirectUrl_GetRedirectToAuthenticateSettings_ReturnsARedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = TestHelpers.AuthenticationProviders[TestHelpers.InstagramProvider.Name];
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.InstagramProvider.Name);
                 var callbackUri = new Uri("http://www.mysite.com/pew/pew?provider=instagram");
 
                 // Act.
@@ -48,7 +48,6 @@ namespace SimpleAuthentication.Tests.ExtraProviders
             public async Task GivenAValidResponse_AuthenticateClientAsync_ReturnsAnAuthenticatedClient()
             {
                 // Arrange.
-                var provider = TestHelpers.AuthenticationProviders[TestHelpers.InstagramProvider.Name];
                 const string stateKey = "state";
                 const string state = "adyi#&(*,./,.!~`  uhj97&^*&shdgf\\//////\\dsf";
                 var querystring = new Dictionary<string, string>
@@ -61,12 +60,15 @@ namespace SimpleAuthentication.Tests.ExtraProviders
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson);
                 var userInformationJson = File.ReadAllText("Sample Data\\Instagram-UserInfoResult-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://api.instagram.com/oauth/access_token", accessTokenResponse},
                         {"https://api.instagram.com/v1/users/self?access_token=fb2e77d.47a0479900504cb3ab4a1f626d174d2d", userInformationResponse}
                     });
+
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.InstagramProvider.Name, messageHandler);
+
 
                 // Act.
                 var result = await provider.AuthenticateClientAsync(querystring, state, redirectUrl);

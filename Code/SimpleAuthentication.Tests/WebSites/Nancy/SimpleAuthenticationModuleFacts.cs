@@ -319,26 +319,11 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
             public void GivenAProviderAndAccessToken_GetAuthenticateMe_ReturnsSomeJson()
             {
                 // Arrange.
-                var authenticationCallbackProvider = A.Fake<IAuthenticationProviderCallback>();
-
-                var configService = A.Fake<IConfigService>();
-                A.CallTo(() => configService.GetConfiguration())
-                    .Returns(TestHelpers.FilteredConfigurationProviders("google"));
-
-                var providerScanner = A.Fake<IProviderScanner>();
-                A.CallTo(() => providerScanner.GetDiscoveredProviders())
-                    .Returns(new[] { typeof(GoogleProvider) });
-
-                var authenticationProviderFactory = new AuthenticationProviderFactory(configService,
-                    providerScanner);
-                AddModuleDependency(typeof(IAuthenticationProviderFactory), authenticationProviderFactory);
-                AddModuleDependency(typeof(IAuthenticationProviderCallback), authenticationCallbackProvider);
-
                 const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
-                                  
+
                 var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {
@@ -346,6 +331,23 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
                             userInformationResponse
                         }
                     });
+
+                var authenticationCallbackProvider = A.Fake<IAuthenticationProviderCallback>();
+
+                var configService = A.Fake<IConfigService>();
+                A.CallTo(() => configService.GetConfiguration())
+                    .Returns(TestHelpers.FilteredConfigurationProviders(TestHelpers.GoogleProvider.Name));
+
+                var providerScanner = A.Fake<IProviderScanner>();
+                A.CallTo(() => providerScanner.GetDiscoveredProviders())
+                    .Returns(new[] { typeof(GoogleProvider) });
+
+                var authenticationProviderFactory = new AuthenticationProviderFactory(configService,
+                    providerScanner,
+                    messageHandler);
+
+                AddModuleDependency(typeof(IAuthenticationProviderFactory), authenticationProviderFactory);
+                AddModuleDependency(typeof(IAuthenticationProviderCallback), authenticationCallbackProvider);
 
                 var browser = Browser();
 
@@ -370,6 +372,19 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
             public void GivenAnExpiredAccessToken_GetAuthenticateMe_ReturnsAnError()
             {
                 // Arrange.
+                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
+
+                const string errorJson = "{ \"error\" : \"fail\" }";
+                var forbiddenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(errorJson, System.Net.HttpStatusCode.Forbidden);
+                var messageHandler = new FakeHttpMessageHandler(
+                    new Dictionary<string, HttpResponseMessage>
+                    {
+                        {
+                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
+                            forbiddenResponse
+                        }
+                    }); 
+                
                 var errorResponse = new Response { StatusCode = HttpStatusCode.Forbidden };
                 var authenticationCallbackProvider = A.Fake<IAuthenticationProviderCallback>();
                 A.CallTo(() => authenticationCallbackProvider.OnError(A<INancyModule>._,
@@ -379,29 +394,18 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
                 
                 var configService = A.Fake<IConfigService>();
                 A.CallTo(() => configService.GetConfiguration())
-                    .Returns(TestHelpers.FilteredConfigurationProviders("google"));
+                    .Returns(TestHelpers.FilteredConfigurationProviders(TestHelpers.GoogleProvider.Name));
 
                 var providerScanner = A.Fake<IProviderScanner>();
                 A.CallTo(() => providerScanner.GetDiscoveredProviders())
                     .Returns(new[] { typeof(GoogleProvider) });
 
                 var authenticationProviderFactory = new AuthenticationProviderFactory(configService,
-                    providerScanner);
+                    providerScanner,
+                    messageHandler);
+
                 AddModuleDependency(typeof(IAuthenticationProviderFactory), authenticationProviderFactory);
                 AddModuleDependency(typeof(IAuthenticationProviderCallback), authenticationCallbackProvider);
-
-                const string accessToken = "813E2697-C5B8-4F1B-A0C6-579E79B20AD9";
-
-                const string errorJson = "{ \"error\" : \"fail\" }";
-                var forbiddenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(errorJson, System.Net.HttpStatusCode.Forbidden);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
-                    new Dictionary<string, HttpResponseMessage>
-                    {
-                        {
-                            "https://www.googleapis.com/plus/v1/people/me?access_token=" + accessToken,
-                            forbiddenResponse
-                        }
-                    });
 
                 var browser = Browser();
 

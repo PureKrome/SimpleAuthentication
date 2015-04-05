@@ -1,16 +1,6 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Net;
-//using System.Net.Http;
-//using System.Threading.Tasks;
-//using RestSharp;
-//using SimpleAuthentication.Core.Exceptions;
-//using SimpleAuthentication.Core.Providers.WindowsLive;
-//using SimpleAuthentication.Core.Tracing;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Net.Http;
 using Newtonsoft.Json;
 using SimpleAuthentication.Core.Providers.OAuth.V20;
 using SimpleAuthentication.Core.Providers.WindowsLive;
@@ -19,7 +9,8 @@ namespace SimpleAuthentication.Core.Providers
 {
     public class WindowsLiveProvider : OAuth20Provider
     {
-        public WindowsLiveProvider(ProviderParams providerParams) : base(providerParams)
+        public WindowsLiveProvider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null) : base(providerParams, httpMessageHandler)
         {
         }
 

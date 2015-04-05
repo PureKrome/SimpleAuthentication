@@ -21,7 +21,6 @@ namespace SimpleAuthentication.Tests.Providers
             public async Task GivenSomeValidCallbackData_AuthenticateClientAsync_ReturnsSomeUserInformation()
             {
                 // Arrange.
-                var provider = TestHelpers.AuthenticationProviders["facebook"];
                 const string state = "adyiuhj97&^*&shdgf\\//////\\dsf";
 
                 var querystring = new Dictionary<string, string>
@@ -35,7 +34,7 @@ namespace SimpleAuthentication.Tests.Providers
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenContent);
                 var userInformationJson = File.ReadAllText("Sample Data\\Facebook-UserInfoResult-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://graph.facebook.com/oauth/access_token", accessTokenResponse},
@@ -47,6 +46,8 @@ namespace SimpleAuthentication.Tests.Providers
                         }
                     });
 
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.FacebookProvider.Name, messageHandler);
+                
                 // Arrange.
                 var result = await provider.AuthenticateClientAsync(querystring, state, redirectUrl);
 
@@ -132,7 +133,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrl_GetRedirectToAuthenticateSettings_ReturnsSomeRedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = (FacebookProvider)TestHelpers.AuthenticationProviders["facebook"]; 
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.FacebookProvider.Name);
                 var callbackUrl = new Uri("http://www.mywebsite.com/auth/callback?provider=facebookz0r");
 
                 // Arrange.
@@ -156,7 +157,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrlAndIsMobile_GetRedirectToAuthenticateSettings_ReturnsSomeRedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = (FacebookProvider)TestHelpers.AuthenticationProviders["facebook"]; 
+                var provider = (FacebookProvider)TestHelpers.GetAuthenticationProvider(TestHelpers.FacebookProvider.Name);
                 provider.IsMobile = true;
                 
                 var callbackUrl = new Uri("http://www.mywebsite.com/auth/callback?provider=facebookz0r");
@@ -182,7 +183,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrlAndADisplayType_GetRedirectToAuthenticateSettings_ReturnsSomeRedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = (FacebookProvider) TestHelpers.AuthenticationProviders["facebook"];
+                var provider = (FacebookProvider)TestHelpers.GetAuthenticationProvider(TestHelpers.FacebookProvider.Name);
                 provider.DisplayType = DisplayType.PopUp;
                 
                 var callbackUrl = new Uri("http://www.mywebsite.com/auth/callback?provider=facebookz0r");

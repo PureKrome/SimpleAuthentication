@@ -18,8 +18,10 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V20
         private string _scopeKey;
         private string _scopeSeparator;
         private string _stateKey;
+        private readonly HttpMessageHandler _httpMessageHandler;
 
-        protected OAuth20Provider(ProviderParams providerParams)
+        protected OAuth20Provider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null)
         {
             if (providerParams == null)
             {
@@ -31,6 +33,9 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V20
 
             // Optional.
             Scopes = providerParams.Scopes;
+
+            // Note: OPTIONAL - HttpClientHandler is used for testing/mocking puposes.
+            _httpMessageHandler = httpMessageHandler;
 
             // Defaults.
             ScopeKey = "scope";
@@ -195,7 +200,7 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V20
 
             HttpResponseMessage response;
 
-            using (var client = HttpClientFactory.GetHttpClient())
+            using (var client = HttpClientFactory.GetHttpClient(_httpMessageHandler))
             {
                 var postData = new List<KeyValuePair<string, string>>
                 {
@@ -254,7 +259,7 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V20
 
             string content;
 
-            using (var client = HttpClientFactory.GetHttpClient())
+            using (var client = HttpClientFactory.GetHttpClient(_httpMessageHandler))
             {
                 var requestUri = UserInformationUri(accessToken);
 

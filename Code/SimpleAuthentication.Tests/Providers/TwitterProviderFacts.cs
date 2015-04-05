@@ -21,21 +21,20 @@ namespace SimpleAuthentication.Tests.Providers
             public async Task GivenAValidQuerystring_AuthenticateClientAsync_ReturnsAnUserAuthenticatedUser()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
-
                 var accessTokenContent = File.ReadAllText("Sample Data\\Twitter-AccessToken-Content.txt");
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenContent);
                 var verifyCredentialsContent = File.ReadAllText("Sample Data\\Twitter-VerifyCredentials-Content.json");
                 var verifyCredentialsResponse =
                     FakeHttpMessageHandler.GetStringHttpResponseMessage(verifyCredentialsContent);
-                HttpClientFactory.MessageHandler =
+                var messageHandler =
                     new FakeHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://api.twitter.com/oauth/access_token", accessTokenResponse},
                         {"https://api.twitter.com/1.1/account/verify_credentials.json", verifyCredentialsResponse}
                     });
+
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name, messageHandler);
+
 
                 const string state = "B9608CE5-1E3F-4AF9-A4FA-043BFF70F53C";
                 var querystring = new Dictionary<string, string>
@@ -64,9 +63,8 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAQuerystringWithAMissingVerifierTokenKeyValue_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name);
+
                 const string state = "B9608CE5-1E3F-4AF9-A4FA-043BFF70F53C";
                 var querystring = new Dictionary<string, string>
                 {
@@ -86,13 +84,12 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAnInvalidAccessToken_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
-
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage("i am a bad access token");
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(accessTokenResponse);
-                
+                var messageHandler = new FakeHttpMessageHandler(accessTokenResponse);
+
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name, messageHandler);
+
+
                 const string state = "B9608CE5-1E3F-4AF9-A4FA-043BFF70F53C";
                 var querystring = new Dictionary<string, string>
                 {
@@ -113,13 +110,12 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAnAccessTokenUnauthorizedError_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
-
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage("i am a bad access token",
                     HttpStatusCode.Unauthorized);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(accessTokenResponse);
+                var messageHandler = new FakeHttpMessageHandler(accessTokenResponse);
+
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name, messageHandler);
+
 
                 const string state = "B9608CE5-1E3F-4AF9-A4FA-043BFF70F53C";
                 var querystring = new Dictionary<string, string>
@@ -141,20 +137,18 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAnInvalidVerifyCredentials_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
-
                 var accessTokenContent = File.ReadAllText("Sample Data\\Twitter-AccessToken-Content.txt");
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenContent);
                 var verifyCredentialsResponse =
                     FakeHttpMessageHandler.GetStringHttpResponseMessage("i am some bad user credentials");
-                HttpClientFactory.MessageHandler =
+                var messageHandler =
                     new FakeHttpMessageHandler(new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://api.twitter.com/oauth/access_token", accessTokenResponse},
                         {"https://api.twitter.com/1.1/account/verify_credentials.json", verifyCredentialsResponse}
                     });
+
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name, messageHandler);
 
                 const string state = "B9608CE5-1E3F-4AF9-A4FA-043BFF70F53C";
                 var querystring = new Dictionary<string, string>
@@ -179,14 +173,13 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrl_GetRedirectToAuthenticateSettingsAsync_ReturnsSomeRedirectToAuthenticationSettings()
             {
                 // Arrange.
-                var providerParams = new ProviderParams("Rb7qNNPUPsRSYkznFTbF6Q",
-                    "pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c");
-                var provider = new TwitterProvider(providerParams);
                 var callbackUrl = new Uri("http://www.mysite.com/callback/endpoint?provider=pewpew");
                 var accessTokenContent = File.ReadAllText("Sample Data\\Twitter-RequestToken-Content.txt");
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenContent);
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(accessTokenResponse);
-
+                var messageHandler = new FakeHttpMessageHandler(accessTokenResponse);
+                
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.TwitterProvider.Name, messageHandler);
+    
                 // Act.
                 var settings = provider.GetRedirectToAuthenticateSettings(callbackUrl);
 

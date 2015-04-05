@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SimpleAuthentication.Core;
@@ -12,8 +13,9 @@ namespace SimpleAuthentication.ExtraProviders
 {
     public class InstagramProvider : OAuth20Provider
     {
-        public InstagramProvider(ProviderParams providerParams)
-            : base(providerParams)
+        public InstagramProvider(ProviderParams providerParams, 
+            HttpMessageHandler httpMessageHandler = null)
+            : base(providerParams, httpMessageHandler)
         {
         }
 

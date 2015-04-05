@@ -21,7 +21,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenACallbackUrl_GetRedirectToAuthenticateSettings_ReturnsSomeRedirectToAuthenticateSettings()
             {
                 // Arrange.
-                var provider = TestHelpers.AuthenticationProviders["google"];
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GoogleProvider.Name);
                 var callbackUrl = new Uri("http://www.mywebsite.com/auth/callback?provider=googlez0r");
 
                 // Arrange.
@@ -49,9 +49,6 @@ namespace SimpleAuthentication.Tests.Providers
             public async Task GivenSomeValidCallbackData_AuthenticateClientAsync_ReturnsSomeUserInformation()
             {
                 // Arrange.
-                const string publicApiKey = "adskfhsd kds j k&^%*&^%*%/\\/\\/\\/111";
-                const string secretApiKey = "xxxxxxxxx asdsad as das kds j k&^%*&^%*%/\\/\\/\\/111";
-                var provider = new GoogleProvider(new ProviderParams(publicApiKey, secretApiKey));
                 const string stateKey = "state";
                 const string state = "adyiuhj97&^*&shdgf\\//////\\dsf";
                 var querystring = new Dictionary<string, string>
@@ -64,12 +61,13 @@ namespace SimpleAuthentication.Tests.Providers
                 var accessTokenResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(accessTokenJson); 
                 var userInformationJson = File.ReadAllText("Sample Data\\Google-UserInfoResult-Content.json");
                 var userInformationResponse = FakeHttpMessageHandler.GetStringHttpResponseMessage(userInformationJson); 
-                HttpClientFactory.MessageHandler = new FakeHttpMessageHandler(
+                var messageHandler = new FakeHttpMessageHandler(
                     new Dictionary<string, HttpResponseMessage>
                     {
                         {"https://accounts.google.com/o/oauth2/token", accessTokenResponse},
                         {"https://www.googleapis.com/plus/v1/people/me?access_token=ya29.MwAjlO-LAHrX3RoAAABjuR4Tt5Ctgp8PvfK5RN8RURPjQW_dYL5Hu7-hETXapw", userInformationResponse}
                     });
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GoogleProvider.Name, messageHandler);
 
                 // Arrange.
                 var result = await provider.AuthenticateClientAsync(querystring, state, redirectUrl);
@@ -85,7 +83,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAQuerystingMissingAStateKeyValue_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var provider = new GoogleProvider(new ProviderParams("a", "b"));
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GoogleProvider.Name);
                 const string state = "hi";
 
                 // NOTE: State is missing.
@@ -106,7 +104,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAQuerystingStateDataWhichMismatchesSomeServerStateData_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                var provider = new GoogleProvider(new ProviderParams("a", "b"));
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GoogleProvider.Name); 
                 const string state = "hi";
 
                 var querystring = new Dictionary<string, string>
@@ -127,9 +125,7 @@ namespace SimpleAuthentication.Tests.Providers
             public void GivenAQuerystingWithError_AuthenticateClientAsync_ThrowsAnException()
             {
                 // Arrange.
-                const string publicApiKey = "adskfhsd kds j k&^%*&^%*%/\\/\\/\\/111";
-                const string secretApiKey = "xxxxxxxxx asdsad as das kds j k&^%*&^%*%/\\/\\/\\/111";
-                var provider = new GoogleProvider(new ProviderParams(publicApiKey, secretApiKey));
+                var provider = TestHelpers.GetAuthenticationProvider(TestHelpers.GoogleProvider.Name);
                 const string state = "adyiuhj97&^*&shdgf\\//////\\dsf";
 
                 var querystring = new Dictionary<string, string>

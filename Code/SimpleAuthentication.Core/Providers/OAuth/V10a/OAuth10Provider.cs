@@ -5,7 +5,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using OAuth;
 using SimpleAuthentication.Core.Exceptions;
-using SimpleAuthentication.Core.Providers.Twitter;
 using WorldDomination.Net.Http;
 
 namespace SimpleAuthentication.Core.Providers.OAuth.V10a
@@ -13,8 +12,10 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V10a
     public abstract class OAuth10Provider : IAuthenticationProvider
     {
         private string _stateKey;
+        private readonly HttpMessageHandler _httpMessageHandler;
 
-        protected OAuth10Provider(ProviderParams providerParams)
+        protected OAuth10Provider(ProviderParams providerParams,
+            HttpMessageHandler httpMessageHandler = null)
         {
             if (providerParams == null)
             {
@@ -24,7 +25,10 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V10a
             PublicApiKey = providerParams.PublicApiKey;
             SecretApiKey = providerParams.SecretApiKey;
 
-            // NOTE: Scopes are currently ignored.
+            // NOTE 1: Scopes are currently ignored.
+
+            // Note 2: OPTIONAL - HttpClientHandler is used for testing/mocking puposes.
+            _httpMessageHandler = httpMessageHandler;
 
             StateKey = "state";
         }
@@ -151,7 +155,7 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V10a
             var authorizationHeader = oAuthRequest.GetAuthorizationHeader();
 
             HttpResponseMessage response;
-            using (var client = HttpClientFactory.GetHttpClient())
+            using (var client = HttpClientFactory.GetHttpClient(_httpMessageHandler))
             {
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorizationHeader);
                 response = await client.GetAsync(oAuthRequest.RequestUrl);
@@ -256,7 +260,7 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V10a
             var authorizationHeader = oAuthRequest.GetAuthorizationHeader();
 
             HttpResponseMessage response;
-            using (var client = HttpClientFactory.GetHttpClient())
+            using (var client = HttpClientFactory.GetHttpClient(_httpMessageHandler))
             {
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorizationHeader);
                 response = await client.GetAsync(oAuthRequest.RequestUrl);
@@ -293,7 +297,7 @@ namespace SimpleAuthentication.Core.Providers.OAuth.V10a
             var authorizationHeader = oAuthRequest.GetAuthorizationHeader();
 
             HttpResponseMessage response;
-            using (var client = HttpClientFactory.GetHttpClient())
+            using (var client = HttpClientFactory.GetHttpClient(_httpMessageHandler))
             {
                 client.DefaultRequestHeaders.TryAddWithoutValidation("Authorization", authorizationHeader);
                 response = await client.GetAsync(oAuthRequest.RequestUrl);
