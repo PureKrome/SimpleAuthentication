@@ -16,8 +16,7 @@
         <language>en-au</language>
         <tags>authentication twitter google facebook oauth oauth1 oauth2 openid unicorn magicalunicorn magical-unicorn worlddomination worldomination nancy nancyfx</tags>
         <dependencies>
-            <dependency id="Nancy" version="1.0.0" />
-            <dependency id="SimpleAuthentication.Core" version="[2.0.0-rc1, 3.0.0)" />
+            <dependency id="Nancy.SimpleAuthentication" version="[2.0.0-beta01, 3.0.0)" />
         </dependencies>
     </metadata>
     <files>
