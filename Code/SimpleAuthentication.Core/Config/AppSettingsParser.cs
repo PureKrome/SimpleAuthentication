@@ -91,12 +91,22 @@
                                   };
                               }).ToList();
 
+            const string keyKey = "key";
+            const string secretKey = "secret";
+            const string scopesKey = "scopes";
+
             return new Provider
             {
                 Name = key,
-                Secret = values.GetValue("secret"),
-                Key = values.GetValue("key"),
-                Scopes = values.GetValue("scopes")
+                Secret = values.Exists(x => x.Key == secretKey)
+                    ? values.GetValue(secretKey)
+                    : null,
+                Key = values.Exists(x => x.Key == keyKey)
+                    ? values.GetValue(keyKey)
+                    : null,
+                Scopes = values.Exists(x => x.Key == scopesKey)
+                    ? values.GetValue("scopes")
+                    : null
             };
         }
     }
