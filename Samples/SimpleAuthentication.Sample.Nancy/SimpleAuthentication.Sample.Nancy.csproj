@@ -91,7 +91,7 @@
     <Compile Include="Models\AuthenticationViewModel.cs" />
     <Compile Include="Modules\HomeModule.cs" />
     <Compile Include="Models\IndexViewModel.cs" />
-    <Compile Include="Helpers\SampleAuthenticationCallbackProvider.cs" />
+    <Compile Include="Helpers\AuthenticationCallbackProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
