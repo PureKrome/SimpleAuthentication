@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Reflection;
 using System.Threading.Tasks;
 using SimpleAuthentication.Core.Config;
 using SimpleAuthentication.Core.Exceptions;
@@ -13,6 +16,8 @@ namespace SimpleAuthentication.Core
         private readonly IAuthenticationProviderFactory _authenticationProviderFactory;
         private readonly string _callbackRoute;
         private readonly TraceSource _traceSource;
+        private readonly Lazy<IDictionary<string, MethodInfo>> _cachedMethodInfo =
+            new Lazy<IDictionary<string, MethodInfo>>(() => new Dictionary<string, MethodInfo>());
 
         public WebApplicationService(IAuthenticationProviderFactory authenticationProviderFactory,
             TraceSource traceSource,
@@ -106,11 +111,13 @@ namespace SimpleAuthentication.Core
             // Finally! We can hand over the logic to the consumer to do whatever they want.
             _traceSource.TraceVerbose("About to execute your custom callback provider logic.");
 
-            // TODO: CACHE THE METHOD AND TYPE.
-            var type = typeof (TInvokeObject);
-            var method = type.GetMethod("Process");
-            var result = (TResult) method.Invoke(objectToInvokeOn,
-                new object[] {moduleOrController, model});
+            // NOTICE: We have to invoke an object instead of having strongly typed interfaces
+            //         because the instace might be for a Nancy Module (with specific Nancy params)
+            //         or an MVC Module (with that specific MVC params).
+            // PERF QUESTION: Is it worth only caching the MethodInfo? Is it worth it?
+            var result = GetCachedMethodInfo<TInvokeObject, TModuleOrController, TResult>(objectToInvokeOn, 
+                moduleOrController, 
+                model);
 
             return result;
         }
@@ -237,6 +244,28 @@ namespace SimpleAuthentication.Core
             };
 
             return model;
+        }
+
+        private TResult GetCachedMethodInfo<TInvokeObject, TModuleOrController, TResult>(
+            TInvokeObject objectToInvokeOn,
+            TModuleOrController moduleOrController,
+            AuthenticateCallbackResult model)
+        {
+            // What callback type do we have?
+            var type = typeof (TInvokeObject);
+
+            // Is this cached?
+            MethodInfo methodInfo;
+            if (!_cachedMethodInfo.Value.TryGetValue(type.ToString(), out methodInfo))
+            {
+                // Can't find the item, so lets figure it out.
+                methodInfo = type.GetMethod("Process");
+               _cachedMethodInfo.Value.Add(type.ToString(), methodInfo);
+            }
+
+            return (TResult)methodInfo.Invoke(objectToInvokeOn,
+                    new object[] { moduleOrController, model });
+
         }
     }
 }
