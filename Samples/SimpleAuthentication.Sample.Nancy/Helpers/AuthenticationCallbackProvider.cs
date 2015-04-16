@@ -7,9 +7,9 @@ using SimpleAuthentication.Sample.Nancy.Models;
 
 namespace SimpleAuthentication.Sample.Nancy.Helpers
 {
-    public class AuthenticationCallbackProvider : SampleAuthenticationProviderCallback
+    public class SampleAuthenticationCallbackProvider : IAuthenticationProviderCallback 
     {
-        public override dynamic Process(INancyModule module, AuthenticateCallbackResult result)
+        public dynamic Process(INancyModule module, AuthenticateCallbackResult result)
         {
             var model = new AuthenticationViewModel
             {
@@ -30,7 +30,7 @@ namespace SimpleAuthentication.Sample.Nancy.Helpers
             //    .WithView("AuthenticateCallback");
         }
 
-        public override dynamic OnError(INancyModule module, ErrorType errorType, AuthenticationException exception)
+        public dynamic OnError(INancyModule module, ErrorType errorType, AuthenticationException exception)
         {
             var model = new AuthenticationViewModel
             {

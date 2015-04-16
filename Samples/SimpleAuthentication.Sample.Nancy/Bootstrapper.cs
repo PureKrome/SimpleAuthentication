@@ -26,7 +26,7 @@ namespace SimpleAuthentication.Sample.Nancy
             };
             var providerScanner = new ProviderScanner(additionalProviderTypes);
             container.Register<IProviderScanner, ProviderScanner>(providerScanner);
-            container.Register<IAuthenticationProviderCallback, AuthenticationCallbackProvider>();
+            container.Register<IAuthenticationProviderCallback, SampleAuthenticationCallbackProvider>();
 
             //var authenticationProviderFactory = new AuthenticationProviderFactory(providerScanner);
 

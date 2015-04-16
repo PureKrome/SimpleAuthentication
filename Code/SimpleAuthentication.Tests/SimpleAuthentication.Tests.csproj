@@ -130,7 +130,7 @@
     <Compile Include="TestHelpers.cs" />
     <Compile Include="WebApplicationServiceFacts.cs" />
     <Compile Include="WebSites\Mvc\SimpleAuthenticationControllerFacts.cs" />
-    <Compile Include="WebSites\Nancy\AuthenticationProviderCallbackFacts.cs" />
+    <Compile Include="WebSites\Nancy\SampleJsonAuthenticationProviderCallbackFacts.cs" />
     <Compile Include="WebSites\Nancy\BootstrapperExtensions.cs" />
     <Compile Include="WebSites\Nancy\BrowserTestHelpers.cs" />
     <Compile Include="WebSites\Nancy\FakeSimpleAuthenticationModuleFacts.cs" />

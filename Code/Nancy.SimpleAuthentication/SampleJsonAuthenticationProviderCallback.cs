@@ -7,7 +7,7 @@ namespace Nancy.SimpleAuthentication
     /// A simple implimentation of the handling the custom callback from the Authentication Provider or for hanlding an error.
     /// </summary>
     /// <remarks>IMPORTANT: This class is **NOT** intended to be used in production, but as a basis for quick prototyping and testing stuff.</remarks>
-    public class SampleAuthenticationProviderCallback : IAuthenticationProviderCallback
+    public class SampleJsonAuthenticationProviderCallback : IAuthenticationProviderCallback
     {
         private const string Notice =
             "You are using the SampleSimpleAuthenticationProviderCallback class that comes with the Nancy.SimpleAuthentication library. This class is generally auto setup with Nancy and is here to provide you with a quick example of what this entire library can do -> just returns the results as Json. It's probably not very helpful for production, though. The recommendation is to create your own class which inherits from IAuthenticationProviderCallback and impliment your own logic OR inherit from this class and impliment your own logic for the methods you decide to override.";
@@ -28,7 +28,14 @@ namespace Nancy.SimpleAuthentication
                 AuthenticateCallbackResult = result
             };
 
-            return module.Response.AsJson(model);
+            // We either return some JSON response to the client -OR-
+            // we redirect somewhere (because a return url was provided).
+            // NOTE: We don't store the result (ie. user info) in any session or what-not.
+            //       normally, this is saved into a DB or whatever BEFORE the redirect occurs.
+            //       But this is just some damn simple callback class, so nope - nada, nothing, zilch.
+            return string.IsNullOrWhiteSpace(result.ReturnUrl)
+                ? module.Response.AsJson(model)
+                : module.Response.AsRedirect(result.ReturnUrl);
         }
 
         /// <summary>

@@ -119,7 +119,7 @@ namespace SimpleAuthentication.Tests
             }
 
             [Fact]
-            public async Task GivenSomeFullData_AuthenticateCallbackAsync_ACallbackResult()
+            public async Task GivenSomeFullData_AuthenticateCallbackAsync_ReturnsACallbackResult()
             {
                 // Arrange.
                 const string callbackResult = "this is someview content!";
