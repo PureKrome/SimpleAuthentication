@@ -12,6 +12,7 @@ namespace SimpleAuthentication.Core
     public class AuthenticationProviderFactory : IAuthenticationProviderFactory
     {
         private readonly HttpMessageHandler _httpMessageHandler;
+        private Lazy<ITraceManager> _traceManager = new Lazy<ITraceManager>(() => new TraceManager());
 
         public AuthenticationProviderFactory(IConfigService configService,
             IProviderScanner providerScanner,
@@ -30,14 +31,10 @@ namespace SimpleAuthentication.Core
             // NOTE: Optional message handler. This is used mainly for unit testing purposes.
             _httpMessageHandler = httpMessageHandler;
 
-            TraceManager = new Lazy<ITraceManager>(() => new TraceManager()).Value;
-
             SetupAuthenticationProviders(configService, providerScanner);
         }
 
         public IDictionary<string, IAuthenticationProvider> AuthenticationProviders { get; private set; }
-
-        public ITraceManager TraceManager { set; private get; }
 
         private void SetupAuthenticationProviders(IConfigService configService,
             IProviderScanner providerScanner)
