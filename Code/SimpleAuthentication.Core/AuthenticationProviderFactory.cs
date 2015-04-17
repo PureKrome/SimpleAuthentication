@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using SimpleAuthentication.Core.Config;
@@ -12,11 +13,15 @@ namespace SimpleAuthentication.Core
     public class AuthenticationProviderFactory : IAuthenticationProviderFactory
     {
         private readonly HttpMessageHandler _httpMessageHandler;
-        private Lazy<ITraceManager> _traceManager = new Lazy<ITraceManager>(() => new TraceManager());
+        private readonly Lazy<ITraceManager> _traceManager = new Lazy<ITraceManager>(() => new TraceManager());
+
+        public AuthenticationProviderFactory(IConfigService configService,
+            IProviderScanner providerScanner) : this(configService, providerScanner, null)
+        { }
 
         public AuthenticationProviderFactory(IConfigService configService,
             IProviderScanner providerScanner,
-            HttpMessageHandler httpMessageHandler = null)
+            HttpMessageHandler httpMessageHandler)
         {
             if (configService == null)
             {
@@ -31,6 +36,11 @@ namespace SimpleAuthentication.Core
             // NOTE: Optional message handler. This is used mainly for unit testing purposes.
             _httpMessageHandler = httpMessageHandler;
 
+            TraceSource.TraceVerbose("Authentication provider factory instantiated with {0} message handler.",
+                _httpMessageHandler == null
+                    ? "no"
+                    : "a");
+
             SetupAuthenticationProviders(configService, providerScanner);
         }
 
@@ -39,6 +49,8 @@ namespace SimpleAuthentication.Core
         private void SetupAuthenticationProviders(IConfigService configService,
             IProviderScanner providerScanner)
         {
+            TraceSource.TraceVerbose("Setup or Scanning for Authentication Providers.");
+
             if (configService == null)
             {
                 throw new ArgumentNullException("configService");
@@ -63,6 +75,9 @@ namespace SimpleAuthentication.Core
             {
                 throw new AuthenticationException("No discovered providers were found by the Provider Scanner. We need at least one IAuthenticationProvider type to exist so we can attempt to map the authentication data (from the configService) to the found Provider.");
             }
+
+            TraceSource.TraceInformation("Discovered {0} Authentication Providers.", discoveredProviders.Count);
+
             // Lets try and map the developer-provided list of providers against the available
             // list that was discovered.
             // We don't want to load providers that cannot be mapped -- after all,
@@ -87,6 +102,8 @@ namespace SimpleAuthentication.Core
                     AuthenticationProviders.Add(key, provider);
                 }
             }
+
+            TraceSource.TraceInformation("Mapped {0} providers to configuration settings.", AuthenticationProviders.Count);
         }
 
         private IAuthenticationProvider LoadProvider(Provider configProvider,
@@ -154,6 +171,11 @@ namespace SimpleAuthentication.Core
             }
 
             return authenticationProvider;
+        }
+
+        private TraceSource TraceSource
+        {
+            get { return _traceManager.Value["Nancy.SimpleAuthentication.AuthenticationProviderFactory"]; }
         }
     }
 

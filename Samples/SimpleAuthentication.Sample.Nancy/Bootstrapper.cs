@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Session;
@@ -26,13 +27,10 @@ namespace SimpleAuthentication.Sample.Nancy
             };
             var providerScanner = new ProviderScanner(additionalProviderTypes);
             container.Register<IProviderScanner, ProviderScanner>(providerScanner);
-            container.Register<IAuthenticationProviderCallback, SampleAuthenticationCallbackProvider>();
+            container.Register<IAuthenticationProviderCallback, SampleNancyAuthenticationCallbackProvider>();
 
-            //var authenticationProviderFactory = new AuthenticationProviderFactory(providerScanner);
-
-            //// TODO: make APF a singleton.
-            //authenticationProviderFactory.AddProvider(gitHubProvider);
-            //authenticationProviderFactory.AddProvider(instagramProvider);
+            // HttpMessageHandler are used for faking the .net responses.
+            //container.Register((HttpMessageHandler) null);
 
             CookieBasedSessions.Enable(pipelines);
         }
