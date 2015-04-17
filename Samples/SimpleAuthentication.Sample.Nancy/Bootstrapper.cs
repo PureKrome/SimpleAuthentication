@@ -29,9 +29,6 @@ namespace SimpleAuthentication.Sample.Nancy
             container.Register<IProviderScanner, ProviderScanner>(providerScanner);
             container.Register<IAuthenticationProviderCallback, SampleNancyAuthenticationCallbackProvider>();
 
-            // HttpMessageHandler are used for faking the .net responses.
-            //container.Register((HttpMessageHandler) null);
-
             CookieBasedSessions.Enable(pipelines);
         }
     }
