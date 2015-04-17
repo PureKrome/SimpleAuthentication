@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
-using SimpleAuthentication.Core.Exceptions;
 using SimpleAuthentication.Core.Providers.Facebook;
 using SimpleAuthentication.Core.Providers.OAuth.V20;
 
