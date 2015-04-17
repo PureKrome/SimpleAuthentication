@@ -57,6 +57,7 @@
       <HintPath>..\..\packages\Nancy.Viewengines.Razor.1.1\lib\net40\Nancy.ViewEngines.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -91,7 +92,7 @@
     <Compile Include="Models\AuthenticationViewModel.cs" />
     <Compile Include="Modules\HomeModule.cs" />
     <Compile Include="Models\IndexViewModel.cs" />
-    <Compile Include="Helpers\AuthenticationCallbackProvider.cs" />
+    <Compile Include="Helpers\SampleNancyAuthenticationCallbackProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
