@@ -9,7 +9,14 @@ namespace SimpleAuthentication.Core.Config
     {
         public Configuration GetConfiguration()
         {
-            return UseAppSettings() ?? UseConfig();
+            var configuration = UseAppSettings() ?? UseConfig();
+
+            if (configuration == null)
+            {
+                throw new AuthenticationException("No AppSettings keys -or- a SimpleAuthentication configuration section was found. At least one of those configration options is required - otherwise, how do we know ~how~ to connect to any Authentication Providers which you have required? A sample <appSettings> key/value is: <add key=\"sa.Google\" value=\"key:blahblahblah.apps.googleusercontent.com;secret:pew-pew\". Please check the documentation about how to add your specific configuration settings./>");
+            }
+
+            return configuration;
         }
 
         private static Configuration UseConfig(string sectionName = "authenticationProviders")
@@ -43,14 +50,11 @@ namespace SimpleAuthentication.Core.Config
         {
             var configuration = ConfigurationManager.AppSettings.ParseAppSettings();
 
-            if (configuration == null ||
-                configuration.Providers == null ||
-                !configuration.Providers.Any())
-            {
-                throw new AuthenticationException("AppSettings section parsed and -no- provider's were found. At least one key/value is required in the <appSettings> section so we can authenticate against a provider. A sample key/value is: <add key=\"sa.Google\" value=\"key:blahblahblah.apps.googleusercontent.com;secret:pew-pew\" />");
-            }
-
-            return configuration;
+            return configuration == null ||
+                   configuration.Providers == null ||
+                   !configuration.Providers.Any()
+                ? null
+                : configuration;
         }
     }
 }
