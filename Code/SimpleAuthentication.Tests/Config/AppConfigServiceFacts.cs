@@ -3,9 +3,9 @@ using SimpleAuthentication.Core.Config;
 using SimpleAuthentication.Core.Exceptions;
 using Xunit;
 
-namespace SimpleAuthentication.Tests
+namespace SimpleAuthentication.Tests.Config
 {
-    public class ConfigServiceFacts
+    public class AppConfigServiceFacts
     {
         [Fact]
         public void GivenNoAppSettings_RedirectToProvider_ThrowsAnException()

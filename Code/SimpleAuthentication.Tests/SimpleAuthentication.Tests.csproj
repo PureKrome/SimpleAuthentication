@@ -115,7 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AuthenticationProviderFactoryFacts.cs" />
-    <Compile Include="ConfigServiceFacts.cs" />
+    <Compile Include="Config\AppConfigServiceFacts.cs" />
     <Compile Include="Config\AppSettingsParserFacts.cs" />
     <Compile Include="ExtraProviders\GitHubProviderFacts.cs" />
     <Compile Include="ExtraProviders\InstagramProviderFacts.cs" />
