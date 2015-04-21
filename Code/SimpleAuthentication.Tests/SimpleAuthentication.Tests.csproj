@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="AuthenticationProviderFactoryFacts.cs" />
     <Compile Include="Config\AppConfigServiceFacts.cs" />
+    <Compile Include="Config\AppCustomSectionParserFacts.cs" />
     <Compile Include="Config\AppSettingsParserFacts.cs" />
     <Compile Include="ExtraProviders\GitHubProviderFacts.cs" />
     <Compile Include="ExtraProviders\InstagramProviderFacts.cs" />
@@ -139,6 +140,15 @@
     <Compile Include="WebSites\Nancy\UserViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config\SampleInvalidCustomSectionConfigSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config\SampleCustomSectionConfigSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config\SampleEmptyConfigSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Sample Data\GitHub-AccessToken-Content.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

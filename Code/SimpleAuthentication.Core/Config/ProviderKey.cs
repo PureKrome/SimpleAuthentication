@@ -22,10 +22,10 @@ namespace SimpleAuthentication.Core.Config
             get { return this["secret"] as string; }
         }
 
-        [ConfigurationProperty("scope", IsRequired = false)]
-        public string Scope
+        [ConfigurationProperty("scopes", IsRequired = false)]
+        public string Scopes
         {
-            get { return this ["scope"] as string; }
+            get { return this ["scopes"] as string; }
         }
     }
 }

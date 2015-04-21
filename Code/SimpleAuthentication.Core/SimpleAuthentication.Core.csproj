@@ -71,6 +71,7 @@
     <Compile Include="AuthenticateCallbackAsyncData.cs" />
     <Compile Include="AuthenticateCallbackResult.cs" />
     <Compile Include="AuthenticationProviderFactory.cs" />
+    <Compile Include="Config\AppCustomSectionParser.cs" />
     <Compile Include="ErrorType.cs" />
     <Compile Include="IAuthenticationProviderFactory.cs" />
     <Compile Include="Providers\ProviderScanner.cs" />

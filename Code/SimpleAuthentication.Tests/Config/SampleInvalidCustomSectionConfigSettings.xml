@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <configSections>
+        <section name="authenticationProviders"
+                type="SimpleAuthentication.Core.Config.ProviderConfiguration, SimpleAuthentication.Core" />
+    </configSections>
+
+    <authenticationProviders>
+        <providers>
+            <add name="Facebook" BadBadBad="289376437845497" secret="hihihihi" scopes="scope1;scope2"/>
+            <add name="Google" key="587140099194.apps.googleusercontent.com" secret="pewpewpewp" />
+            <add name="Twitter" key="Rb7qNNPUPsRSYkznFTbF6Q" secret="pP1jBdYOlmCzo08QFJjGIHY4YSyPdGLPO2m1q47hu9c" />
+        </providers>
+    </authenticationProviders>
+</configuration>

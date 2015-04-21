@@ -21,29 +21,13 @@ namespace SimpleAuthentication.Core.Config
 
         private static Configuration UseConfig(string sectionName = "authenticationProviders")
         {
-            if (string.IsNullOrEmpty(sectionName))
-            {
-                throw new ArgumentNullException(sectionName);
-            }
+            var configuration = AppCustomSectionParser.ParseAppCustomSection(sectionName);
 
-            var configSection = ConfigurationManager.GetSection(sectionName) as ProviderConfiguration;
-            return configSection == null ||
-                   configSection.Providers == null ||
-                   configSection.Providers.Count <= 0
+            return configuration == null ||
+                   configuration.Providers == null ||
+                   !configuration.Providers.Any()
                 ? null
-                : new Configuration
-                {
-                    RedirectRoute = configSection.RedirectRoute,
-                    CallBackRoute = configSection.CallbackRoute,
-                    Providers = (from p in configSection.Providers.AllKeys
-                        select new Provider
-                        {
-                            Name = configSection.Providers[p].Name,
-                            Key = configSection.Providers[p].Key,
-                            Secret = configSection.Providers[p].Secret,
-                            Scopes = configSection.Providers[p].Scope
-                        }).ToList()
-                };
+                : configuration;
         }
 
         private static Configuration UseAppSettings()
