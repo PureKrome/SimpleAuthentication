@@ -1,5 +1,7 @@
 ﻿using System.Collections.Specialized;
+using System.Configuration;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Shouldly;
 using SimpleAuthentication.Core.Config;
 using Xunit;
@@ -11,41 +13,28 @@ namespace SimpleAuthentication.Tests.Config
         public class ParseAppSettingsFacts
         {
             [Fact]
-            public void GivenANameValueCollectionWithOneKeyAndSecret_ParseAppSettings_ReturnsAConfiguration()
+            public void GivenAFileWithAnAppSettingsWithSomeProviders_ParseAppSettings_ReturnsAConfiguration()
             {
-                // Arrange.
-                const string key = "111.apps.googleusercontent.com";
-                const string secret = "daskfksadhf";
+                // Arrange & Act.
+                var configuration = AppSettingsParser.ParseAppSettings("Config\\SampleAppSettingsConfigSettings.xml");
 
-                var appConfigSettings = new NameValueCollection
-                {
-                    {"a", "b"},
-                    {"sa.Google", string.Format("key:{0};secret:{1}", key, secret)}
-                };
+                // Assert.
+                configuration.Providers.Count.ShouldBe(6);
 
-                // Act.
-                var configuration = appConfigSettings.ParseAppSettings();
+                var provider = configuration.Providers.Single(x => x.Name == "Google");
+                provider.Key.ShouldBe("587140099194.apps.googleusercontent.com");
+                provider.Scopes.ShouldBe("scope1,scope2,scope3");
+                provider.Secret.ShouldBe("aaaaaa");
 
-                // Assert.`
-                configuration.CallBackRoute.ShouldBe(null);
-                configuration.RedirectRoute.ShouldBe(null);
-                configuration.Providers.Count.ShouldBe(1);
-
-                var provider = configuration.Providers.First();
-                provider.Key.ShouldBe(key);
-                provider.Name.ShouldBe("google");
-                provider.Scopes.ShouldBe(null);
-                provider.Secret.ShouldBe(secret);
+                configuration.CallBackRoute.ShouldBe("~/a/b/c?x=1&y=2");
+                configuration.RedirectRoute.ShouldBe("~/x/y/z?a=1&b=2");
             }
 
             [Fact]
-            public void GivenAnEmptyNameValueCollection_ParseAppSettings_ReturnsNoConfiguration()
+            public void GivenAFileWithAppSettingsButNoProviders_ParseAppSettings_ReturnsANullConfiguration()
             {
-                // Arrange.
-                var appConfigSettings = new NameValueCollection();
-
-                // Act.
-                var configuration = appConfigSettings.ParseAppSettings();
+                // Arrange & Act.
+                var configuration = AppSettingsParser.ParseAppSettings("Config\\SampleAppSettingsWithNoProvidersConfigSettings.xml");
 
                 // Assert.
                 configuration.CallBackRoute.ShouldBe(null);
@@ -54,41 +43,12 @@ namespace SimpleAuthentication.Tests.Config
             }
 
             [Fact]
-            public void GivenANameValueCollectionWithACallbackRoute_ParseAppSettings_ReturnsAConfiguration()
+            public void GivenNoSettingsFile_ParseAppSettings_ReturnsANullConfiguration()
             {
-                // Arrange.
-                const string callbackRoute = "afsdfds";
-                var appConfigSettings = new NameValueCollection
-                {
-                    {"sa.callbackroute", callbackRoute}
-                };
+                // Arrange & Assert.
+                var configuration = AppSettingsParser.ParseAppSettings();
 
-                // Act.
-                var configuration = appConfigSettings.ParseAppSettings();
-
-                // Assert.
-                configuration.CallBackRoute.ShouldBe(callbackRoute);
-                configuration.RedirectRoute.ShouldBe(null);
-                configuration.Providers.ShouldBe(null);
-            }
-
-            [Fact]
-            public void GivenANameValueCollectionWithARedirectRoute_ParseAppSettings_ReturnsAConfiguration()
-            {
-                // Arrange.
-                const string redirectRoute = "afsdfds";
-                var appConfigSettings = new NameValueCollection
-                {
-                    {"sa.redirectroute", redirectRoute}
-                };
-
-                // Act.
-                var configuration = appConfigSettings.ParseAppSettings();
-
-                // Assert.
-                configuration.CallBackRoute.ShouldBe(null);
-                configuration.RedirectRoute.ShouldBe(redirectRoute);
-                configuration.Providers.ShouldBe(null);
+                configuration.ShouldBe(null);
             }
         }
     }

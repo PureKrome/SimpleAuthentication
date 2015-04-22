@@ -32,7 +32,7 @@ namespace SimpleAuthentication.Core.Config
 
         private static Configuration UseAppSettings()
         {
-            var configuration = ConfigurationManager.AppSettings.ParseAppSettings();
+            var configuration = AppSettingsParser.ParseAppSettings();
 
             return configuration == null ||
                    configuration.Providers == null ||

@@ -61,6 +61,7 @@
       <HintPath>..\..\packages\Shouldly.2.4.0\lib\net40\Shouldly.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Net.Http" />
@@ -140,6 +141,12 @@
     <Compile Include="WebSites\Nancy\UserViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Config\SampleAppSettingsWithNoProvidersConfigSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Config\SampleAppSettingsConfigSettings.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Config\SampleInvalidCustomSectionConfigSettings.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

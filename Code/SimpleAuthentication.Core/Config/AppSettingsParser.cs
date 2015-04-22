@@ -1,24 +1,55 @@
-﻿namespace SimpleAuthentication.Core.Config
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.Specialized;
-    using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Configuration;
+using System.Linq;
 
+namespace SimpleAuthentication.Core.Config
+{
     public static class AppSettingsParser
     {
         private const string KeyPrefix = "sa.";
         private const string RedirectRouteKey = "redirectroute";
         private const string CallbackRouteKey = "callbackroute";
 
-        public static Configuration ParseAppSettings(this NameValueCollection settings)
+        public static Configuration ParseAppSettings(string file = null)
+        {
+            var exeConfiguration = GetExeConfiguration(file);
+            if (exeConfiguration == null)
+            {
+                return null;
+            }
+
+            var appSettings = exeConfiguration.AppSettings.Settings;
+            if (appSettings == null ||
+                appSettings.Count <= 0)
+            {
+                return null;
+            }
+
+            return ParseAppSettingsCollection(appSettings);
+        }
+
+        private static System.Configuration.Configuration GetExeConfiguration(string file = null)
+        {
+            if (string.IsNullOrWhiteSpace(file))
+            {
+                return ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+            }
+
+            var exeFilePath = new ExeConfigurationFileMap
+            {
+                ExeConfigFilename = file
+            };
+
+            return ConfigurationManager.OpenMappedExeConfiguration(exeFilePath, ConfigurationUserLevel.None);
+        }
+
+        private static Configuration ParseAppSettingsCollection(KeyValueConfigurationCollection settings)
         {
             var configuration = new Configuration();
 
-            for (int i = 0; i < settings.Count; i++)
+            foreach (var key in settings.AllKeys)
             {
-                var key = settings.GetKey(i).ToLower();
-
                 // Example key: <app key="sa.github" value="secret:aaa;key:bbb;scopes:ccc..."/>
 
                 // If it doesn't start with our specific prefix then we ignore it.
@@ -28,16 +59,16 @@
                 }
 
                 var provider = key.Replace(KeyPrefix.ToLowerInvariant(), string.Empty);
-                var value = settings[i];
+                var keyValue = settings[key];
 
                 // First we need to check for our specific Keys. Otherwise, we assume it's a provider key.
                 switch (provider)
                 {
                     case RedirectRouteKey:
-                        configuration.RedirectRoute = value;
+                        configuration.RedirectRoute = keyValue.Value;
                         break;
                     case CallbackRouteKey:
-                        configuration.CallBackRoute = value;
+                        configuration.CallBackRoute = keyValue.Value;
                         break;
                     default:
                         // Fallback - we're assuming the key is a provider...
@@ -46,7 +77,7 @@
                             configuration.Providers = new List<Provider>();
                         }
 
-                        configuration.Providers.Add(ParseValueForProviderData(provider, value));
+                        configuration.Providers.Add(ParseValueForProviderData(provider, keyValue.Value));
                         break;
                 }
             }
@@ -78,18 +109,18 @@
                 throw new ArgumentNullException("value");
             }
 
-            
-            var values = value.Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
-                              .Select(x =>
-                              {
-                                  var split = x.Split(new[] { ':' }, StringSplitOptions.RemoveEmptyEntries);
 
-                                  return new
-                                  {
-                                      Key = split[0].ToLower(),
-                                      Value = split[1]
-                                  };
-                              }).ToList();
+            var values = value.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x =>
+                {
+                    var split = x.Split(new[] {':'}, StringSplitOptions.RemoveEmptyEntries);
+
+                    return new
+                    {
+                        Key = split[0].ToLower(),
+                        Value = split[1]
+                    };
+                }).ToList();
 
             const string keyKey = "key";
             const string secretKey = "secret";
