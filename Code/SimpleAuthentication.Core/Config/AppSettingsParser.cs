@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Configuration;
 using System.Linq;
 
@@ -13,15 +14,11 @@ namespace SimpleAuthentication.Core.Config
 
         public static Configuration ParseAppSettings(string file = null)
         {
-            var exeConfiguration = GetExeConfiguration(file);
-            if (exeConfiguration == null)
-            {
-                return null;
-            }
+            var appSettings = string.IsNullOrWhiteSpace(file)
+                ? GetAppSettingsFromConfigFile()
+                : GetAppSettingsFromConfigFile(file);
 
-            var appSettings = exeConfiguration.AppSettings.Settings;
-            if (appSettings == null ||
-                appSettings.Count <= 0)
+            if (appSettings == null)
             {
                 return null;
             }
@@ -29,11 +26,19 @@ namespace SimpleAuthentication.Core.Config
             return ParseAppSettingsCollection(appSettings);
         }
 
-        private static System.Configuration.Configuration GetExeConfiguration(string file = null)
+        private static NameValueCollection GetAppSettingsFromConfigFile()
+        {
+            var appSettings = ConfigurationManager.AppSettings;
+            return appSettings.Count <= 0
+                ? null
+                : appSettings;
+        }
+
+        private static NameValueCollection GetAppSettingsFromConfigFile(string file)
         {
             if (string.IsNullOrWhiteSpace(file))
             {
-                return ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                throw new ArgumentNullException(file);
             }
 
             var exeFilePath = new ExeConfigurationFileMap
@@ -41,10 +46,24 @@ namespace SimpleAuthentication.Core.Config
                 ExeConfigFilename = file
             };
 
-            return ConfigurationManager.OpenMappedExeConfiguration(exeFilePath, ConfigurationUserLevel.None);
+            var configuration = ConfigurationManager.OpenMappedExeConfiguration(exeFilePath, ConfigurationUserLevel.None);
+            if (configuration.AppSettings == null ||
+                configuration.AppSettings.Settings == null ||
+                configuration.AppSettings.Settings.Count <= 0)
+            {
+                return null;
+            }
+
+            var result = new NameValueCollection();
+            foreach (KeyValueConfigurationElement item in configuration.AppSettings.Settings)
+            {
+                result.Add(item.Key, item.Value);
+            }
+
+            return result;
         }
 
-        private static Configuration ParseAppSettingsCollection(KeyValueConfigurationCollection settings)
+        private static Configuration ParseAppSettingsCollection(NameValueCollection settings)
         {
             var configuration = new Configuration();
 
@@ -59,16 +78,16 @@ namespace SimpleAuthentication.Core.Config
                 }
 
                 var provider = key.Replace(KeyPrefix.ToLowerInvariant(), string.Empty);
-                var keyValue = settings[key];
+                var value = settings[key];
 
                 // First we need to check for our specific Keys. Otherwise, we assume it's a provider key.
                 switch (provider)
                 {
                     case RedirectRouteKey:
-                        configuration.RedirectRoute = keyValue.Value;
+                        configuration.RedirectRoute = value;
                         break;
                     case CallbackRouteKey:
-                        configuration.CallBackRoute = keyValue.Value;
+                        configuration.CallBackRoute = value;
                         break;
                     default:
                         // Fallback - we're assuming the key is a provider...
@@ -77,7 +96,7 @@ namespace SimpleAuthentication.Core.Config
                             configuration.Providers = new List<Provider>();
                         }
 
-                        configuration.Providers.Add(ParseValueForProviderData(provider, keyValue.Value));
+                        configuration.Providers.Add(ParseValueForProviderData(provider, value));
                         break;
                 }
             }
