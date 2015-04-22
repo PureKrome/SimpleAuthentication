@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using Nancy;
+﻿using Nancy;
 using Nancy.Bootstrapper;
 using Nancy.Session;
 using Nancy.SimpleAuthentication;
@@ -20,12 +17,11 @@ namespace SimpleAuthentication.Sample.Nancy
 
             // Manually adding our own Types (instead of scanning for them or they exist in a weird location
             // where the scanner can't find them).
-            var additionalProviderTypes = new List<Type>
-            {
-                typeof (GitHubProvider),
-                typeof (InstagramProvider)
-            };
-            var providerScanner = new ProviderScanner(additionalProviderTypes);
+            var providers = ProviderScanner.DefaultAndFakeProviders;
+            providers.Add(typeof (GitHubProvider));
+            providers.Add(typeof (InstagramProvider));
+
+            var providerScanner = new ProviderScanner(providers);
             container.Register<IProviderScanner, ProviderScanner>(providerScanner);
             container.Register<IAuthenticationProviderCallback, SampleNancyAuthenticationCallbackProvider>();
 
