@@ -18,12 +18,9 @@ namespace SimpleAuthentication.Core.Config
                 ? GetAppSettingsFromConfigFile()
                 : GetAppSettingsFromConfigFile(file);
 
-            if (appSettings == null)
-            {
-                return null;
-            }
-
-            return ParseAppSettingsCollection(appSettings);
+            return appSettings == null
+                ? null
+                : ParseAppSettingsCollection(appSettings);
         }
 
         private static NameValueCollection GetAppSettingsFromConfigFile()
