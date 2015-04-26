@@ -67,7 +67,7 @@ namespace SimpleAuthentication.Tests
                     new AuthenticationProviderFactory(configService, providerScanner));
 
                 // Assert.
-                exception.Message.ShouldBe("Unable to find the provider [google]. Is there a provider dll available? Is there a typo in the provider name? Solution suggestions: Check to make sure the correct dll's are in the 'bin' directory and/or check the name to make sure there's no typo's in there. Example: If you're trying include the GitHub provider, make sure the name is 'github' (any case) and that the ExtraProviders dll exists in the 'bin' directory or make sure you've downloaded the package via NuGet -> install-package SimpleAuthentication.ExtraProviders.");
+                exception.Message.ShouldBe("You have provided some configuration settings for an Authentication Provider: 'google' but no Authentication Provider was setup with this name. Is there a provider dll available? Is there a typo in the provider name? Possible suggestions to fix this: Make sure you have correctly setup/defined the Authentication Providers you want. If you are using the default ProviderScanner, you can manually define which providers to use. If you don't then only the default 4 are setup -> Google, Facebook, Twitter and Windows Live. For more information on this, please check the documentation/wiki on the github website and look for 'ProviderScanners'.");
             }
         }
     }

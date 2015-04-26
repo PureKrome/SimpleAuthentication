@@ -15,9 +15,33 @@ namespace SimpleAuthentication.Core
         private readonly HttpMessageHandler _httpMessageHandler;
         private readonly Lazy<ITraceManager> _traceManager = new Lazy<ITraceManager>(() => new TraceManager());
 
+        /// <summary>
+        /// A factory which contains all the wired up Authentication Providers.
+        /// </summary>
+        /// <remarks>This constructor uses the following defaults:<br/>- AppSettings (from a *.config file) for the authentication provider details which you need to provide.<br/>- The following providers: Google, Facebook, Twitter, Windows Live.</remarks>
+        public AuthenticationProviderFactory() : this(new AppConfigService())
+        {
+        }
+
+        /// <summary>
+        /// The scanner which determins which Providers are used/wired-up.
+        /// </summary>
+        /// <param name="configService">A configuration service to retrieve provider details.</param>
+        /// <remarks>This constructor uses the following defaults:<br/>- The following providers: Google, Facebook, Twitter, Windows Live.</remarks>
+        public AuthenticationProviderFactory(IConfigService configService) : this(configService,
+            new ProviderScanner())
+        {
+        }
+
+        /// <summary>
+        /// The scanner which determins which Providers are used/wired-up.
+        /// </summary>
+        /// <param name="configService">A configuration service to retrieve provider details.</param>
+        /// <param name="providerScanner">A scanner which determines which providers to include and make available.</param>
         public AuthenticationProviderFactory(IConfigService configService,
             IProviderScanner providerScanner) : this(configService, providerScanner, null)
-        { }
+        {
+        }
 
         public AuthenticationProviderFactory(IConfigService configService,
             IProviderScanner providerScanner,
@@ -44,6 +68,11 @@ namespace SimpleAuthentication.Core
             SetupAuthenticationProviders(configService, providerScanner);
         }
 
+        private TraceSource TraceSource
+        {
+            get { return _traceManager.Value["Nancy.SimpleAuthentication.AuthenticationProviderFactory"]; }
+        }
+
         public IDictionary<string, IAuthenticationProvider> AuthenticationProviders { get; private set; }
 
         private void SetupAuthenticationProviders(IConfigService configService,
@@ -66,14 +95,16 @@ namespace SimpleAuthentication.Core
                 configuration.Providers == null ||
                 !configuration.Providers.Any())
             {
-                throw new AuthenticationException("There needs to be at least one Authentication Provider's detail's in the configService.Provider's collection. Otherwise, how else are we to set the available Authentication Providers?");
+                throw new AuthenticationException(
+                    "There needs to be at least one Authentication Provider's detail's in the configService.Provider's collection. Otherwise, how else are we to set the available Authentication Providers?");
             }
 
             var discoveredProviders = providerScanner.GetDiscoveredProviders();
             if (discoveredProviders == null ||
                 !discoveredProviders.Any())
             {
-                throw new AuthenticationException("No discovered providers were found by the Provider Scanner. We need at least one IAuthenticationProvider type to exist so we can attempt to map the authentication data (from the configService) to the found Provider.");
+                throw new AuthenticationException(
+                    "No discovered providers were found by the Provider Scanner. We need at least one IAuthenticationProvider type to exist so we can attempt to map the authentication data (from the configService) to the found Provider.");
             }
 
             TraceSource.TraceInformation("Discovered {0} Authentication Providers.", discoveredProviders.Count);
@@ -87,7 +118,8 @@ namespace SimpleAuthentication.Core
                 var provider = LoadProvider(configProvider, discoveredProviders);
                 if (provider == null)
                 {
-                    throw new AuthenticationException("Failed to create a Provider for the name: {0}. Maybe the concrete class doesn't exist or the constructor params are not the required ones?");
+                    throw new AuthenticationException(
+                        "Failed to create a Provider for the name: {0}. Maybe the concrete class doesn't exist or the constructor params are not the required ones?");
                 }
 
                 if (AuthenticationProviders == null)
@@ -103,7 +135,8 @@ namespace SimpleAuthentication.Core
                 }
             }
 
-            TraceSource.TraceInformation("Mapped {0} providers to configuration settings.", AuthenticationProviders.Count);
+            TraceSource.TraceInformation("Mapped {0} providers to configuration settings.",
+                AuthenticationProviders.Count);
         }
 
         private IAuthenticationProvider LoadProvider(Provider configProvider,
@@ -129,7 +162,7 @@ namespace SimpleAuthentication.Core
             {
                 string errorMessage =
                     string.Format(
-                        "Unable to find the provider [{0}]. Is there a provider dll available? Is there a typo in the provider name? Solution suggestions: Check to make sure the correct dll's are in the 'bin' directory and/or check the name to make sure there's no typo's in there. Example: If you're trying include the GitHub provider, make sure the name is 'github' (any case) and that the ExtraProviders dll exists in the 'bin' directory or make sure you've downloaded the package via NuGet -> install-package SimpleAuthentication.ExtraProviders.",
+                        "You have provided some configuration settings for an Authentication Provider: '{0}' but no Authentication Provider was setup with this name. Is there a provider dll available? Is there a typo in the provider name? Possible suggestions to fix this: Make sure you have correctly setup/defined the Authentication Providers you want. If you are using the default ProviderScanner, you can manually define which providers to use. If you don't then only the default 4 are setup -> Google, Facebook, Twitter and Windows Live. For more information on this, please check the documentation/wiki on the github website and look for 'ProviderScanners'.",
                         configProviderName);
 
                 throw new AuthenticationException(errorMessage);
@@ -138,14 +171,14 @@ namespace SimpleAuthentication.Core
             IAuthenticationProvider authenticationProvider = null;
 
             var parameters = new ProviderParams(configProvider.Key,
-                    configProvider.Secret,
-                    configProvider.Scopes.ScopesToCollection());
+                configProvider.Secret,
+                configProvider.Scopes.ScopesToCollection());
 
             // Make sure we have a provider with the correct constructor parameters.
             // How? If a person creates their own provider and doesn't offer a constructor
             // that has a sigle ProviderParams -or- a ProviderParams and MessageHandler, 
             // then we're stuffed. So we need to help them.
-            if (exisitingProvider.GetConstructor(new[] { typeof(ProviderParams) }) != null)
+            if (exisitingProvider.GetConstructor(new[] {typeof (ProviderParams)}) != null)
             {
                 authenticationProvider =
                     Activator.CreateInstance(exisitingProvider, parameters) as IAuthenticationProvider;
@@ -172,19 +205,14 @@ namespace SimpleAuthentication.Core
 
             return authenticationProvider;
         }
-
-        private TraceSource TraceSource
-        {
-            get { return _traceManager.Value["Nancy.SimpleAuthentication.AuthenticationProviderFactory"]; }
-        }
     }
 
     public static class CollectionExtensions
     {
         public static ICollection<string> ScopesToCollection(this string scopes)
         {
-            return string.IsNullOrEmpty(scopes) 
-                ? null 
+            return string.IsNullOrEmpty(scopes)
+                ? null
                 : scopes.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
         }
     }
