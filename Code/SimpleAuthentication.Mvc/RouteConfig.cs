@@ -45,7 +45,7 @@ namespace SimpleAuthentication.Mvc
         /// Maps the OAuth Redirect route (for redirecting out to a provider).
         /// </summary>
         /// <param name="routes">The <see cref="RouteCollection"/> to add mappings to.</param>
-        /// <param name="route">A prefix for the URL. "/{providerName}" will be added to the end.</param>
+        /// <param name="route">A prefix for the URL. "/{providerKey}" will be added to the end.</param>
         public static void MapOAuthRedirect(this RouteCollection routes, string route)
         {
             routes.MapRoute(

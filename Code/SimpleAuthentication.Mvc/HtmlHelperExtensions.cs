@@ -8,15 +8,15 @@ namespace SimpleAuthentication.Mvc
     public static class HtmlHelperExtensions
     {
         public static IHtmlString RedirectToProvider(this HtmlHelper htmlHelper,
-            string providerName,
+            string providerKey,
             string innerHtml,
             string returnUrl = null,
             IDictionary<string, object> htmlAttributes = null)
         {
-            if (string.IsNullOrEmpty(providerName))
+            if (string.IsNullOrEmpty(providerKey))
             {
-                throw new ArgumentNullException("providerName",
-                    "Missing a providerName value. Please provide one so we know what route to generate.");
+                throw new ArgumentNullException("providerKey",
+                    "Missing a providerKey value. Please provide one so we know what route to generate.");
             }
 
             if (string.IsNullOrEmpty(innerHtml))
@@ -39,7 +39,7 @@ namespace SimpleAuthentication.Mvc
 
             // Determine the route.
             var urlHelper = new UrlHelper(htmlHelper.ViewContext.RequestContext);
-            var url = urlHelper.RedirectToProvider(providerName, returnUrl);
+            var url = urlHelper.RedirectToProvider(providerKey, returnUrl);
 
             // Set the route.
             tagBuilder.MergeAttribute("href", url);

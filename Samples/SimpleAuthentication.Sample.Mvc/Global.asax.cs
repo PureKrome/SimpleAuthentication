@@ -3,8 +3,6 @@ using System.Web.Mvc;
 using System.Web.Routing;
 using Autofac;
 using Autofac.Integration.Mvc;
-using SimpleAuthentication.Core;
-using SimpleAuthentication.Core.Config;
 using SimpleAuthentication.Core.Providers;
 using SimpleAuthentication.Mvc;
 using SimpleAuthentication.Sample.Mvc.Helpers;
@@ -21,17 +19,31 @@ namespace SimpleAuthentication.Sample.Mvc
             RouteConfig.RegisterRoutes(RouteTable.Routes);
 
             var builder = new ContainerBuilder();
-            builder.RegisterControllers(typeof(MvcApplication).Assembly);
 
-            // Register Simple Authentication stuff.
-            builder.RegisterType<AuthenticationProviderFactory>().As<IAuthenticationProviderFactory>();
+            // NOTE: We have an option here to either
+            // A: * Use the default ConfigService, which is the AppSettingsService.
+            //    * Use the default ProviderScanner -> which is a hardcoded list -> Google, FB, Twitter, WL.
+            // -or-
+            // B: we manually specify which providers we want and where these settings are to be found.
+            // ~~~~ Comment/Uncomment which ever option you want ~~~~~
+
+            // Comment the below line out (which is choice 'B') if you want to test choice 'A'.
+            ManuallySpecifyTheAuthenticationProviders(builder);
+
+            // We need to define the callback : what do to when we've returned from Google, FB, etc..
             builder.RegisterType<SampleMvcAuthenticationCallbackProvider>().As<IAuthenticationProviderCallback>();
-            builder.RegisterType<AppConfigService>().As<IConfigService>().SingleInstance();
-            builder.RegisterType<ProviderScanner>().As<IProviderScanner>().SingleInstance();
-            builder.RegisterControllers(typeof(SimpleAuthenticationController).Assembly);
 
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
+        }
+
+        private static void ManuallySpecifyTheAuthenticationProviders(ContainerBuilder container)
+        {
+            // Manually adding our own Types (instead of scanning for them or they exist in a weird location
+            // where the scanner can't find them).
+            var providers = ProviderScanner.DefaultAndFakeProviders;
+            var providerScanner = new ProviderScanner(providers);
+            container.RegisterInstance(providerScanner).SingleInstance();
         }
     }
 }
