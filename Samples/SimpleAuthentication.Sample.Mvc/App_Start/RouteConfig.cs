@@ -9,8 +9,6 @@ namespace SimpleAuthentication.Sample.Mvc
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
 
-            //SimpleAuthentication.Mvc.RouteConfig.RegisterRoutes();
-
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",
