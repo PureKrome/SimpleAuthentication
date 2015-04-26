@@ -33,6 +33,11 @@ namespace SimpleAuthentication.Sample.Mvc
             // We need to define the callback : what do to when we've returned from Google, FB, etc..
             builder.RegisterType<SampleMvcAuthenticationCallbackProvider>().As<IAuthenticationProviderCallback>();
 
+            // Finally, MVC needs us to register the controller. 
+            // (This is normal MVC behaviour - nothing unique/specific to Simple Authentication.)
+            builder.RegisterControllers(typeof(SimpleAuthenticationController).Assembly);
+
+            // Now complete the DI/IoC setup.
             var container = builder.Build();
             DependencyResolver.SetResolver(new AutofacDependencyResolver(container));
         }
