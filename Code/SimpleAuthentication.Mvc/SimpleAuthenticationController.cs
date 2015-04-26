@@ -25,6 +25,11 @@ namespace SimpleAuthentication.Mvc
         private string _userInformationRoute;
         private string _returnToUrlParameterKey;
 
+        public SimpleAuthenticationController(IAuthenticationProviderCallback authenticationProviderCallback)
+            : this(new AuthenticationProviderFactory(), authenticationProviderCallback)
+        {
+        }
+
         public SimpleAuthenticationController(IAuthenticationProviderFactory authenticationProviderFactory,
             IAuthenticationProviderCallback authenticationProviderCallback) : this(authenticationProviderFactory,
                 authenticationProviderCallback,
