@@ -1,5 +1,4 @@
 ﻿using Nancy;
-using Nancy.Responses.Negotiation;
 using Nancy.SimpleAuthentication;
 using SimpleAuthentication.Core;
 using SimpleAuthentication.Core.Exceptions;
@@ -34,16 +33,17 @@ namespace SimpleAuthentication.Sample.Nancy.Helpers
         {
             var model = new AuthenticationViewModel
             {
-                ErrorMessage = exception.Message
+                ErrorMessage =
+                    string.Format(
+                        "{0} -- You didn't accept the Scopes which this application has requested (which is totally fine) -or- something crazy happened between you and the Authentication Provider.",
+                        exception.Message)
             };
 
             //return nancyModule.Response.AsRedirect("/");
 
             if (errorType != ErrorType.UserInformation)
             {
-                return new Negotiator(module.Context)
-                    .WithModel(model)
-                    .WithView("AuthenticateCallback");
+                return module.View["AuthenticateCallback", model];
             }
 
             var errorModel = new
