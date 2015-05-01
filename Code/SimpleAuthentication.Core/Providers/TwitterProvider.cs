@@ -42,6 +42,7 @@ namespace SimpleAuthentication.Core.Providers
             var updatedCallbackUrl = SystemHelpers.CreateUri(callbackUrl,
                 new Dictionary<string, string> {{"state", state.ToString()}});
 
+            // TODO: HALP!
             var settings = GetRedirectToAuthenticateSettingsAsync(updatedCallbackUrl,
                 new Uri("http://twitter.com/oauth/request_token")).Result;
 
