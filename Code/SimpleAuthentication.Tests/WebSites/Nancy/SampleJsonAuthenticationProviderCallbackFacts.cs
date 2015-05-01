@@ -7,6 +7,7 @@ using Nancy.Responses;
 using Nancy.SimpleAuthentication;
 using Shouldly;
 using SimpleAuthentication.Core;
+using SimpleAuthentication.Core.Exceptions;
 using Xunit;
 
 namespace SimpleAuthentication.Tests.WebSites.Nancy
@@ -102,14 +103,91 @@ namespace SimpleAuthentication.Tests.WebSites.Nancy
                 result.ContentType.ShouldBe("text/html");
             }
 
-            [Fact(Skip = "TODO")]
+            // Eg. this is when we goto Google, but don't accept their Login, so we return back
+            //     to our website with no data.
+            [Fact]
             public void GivenNoAuthenticatedClientAndNoReturnUrl_Process_ReturnsARedirection()
             {
+                // Arrange.
+                var fakeResponse = A.Fake<IResponseFormatter>();
+                A.CallTo(() => fakeResponse.Serializers).Returns(new[] {new DefaultJsonSerializer()});
+
+                var nancyModule = A.Fake<INancyModule>();
+                A.CallTo(() => nancyModule.Response)
+                    .Returns(fakeResponse);
+
+                var view = new ViewRenderer(nancyModule);
+                A.CallTo(() => nancyModule.View).Returns(view);
+                var authenticationProviderCallback = new SampleJsonAuthenticationProviderCallback();
+
+                var authenticationCallbackResult = new AuthenticateCallbackResult
+                {
+                    AuthenticatedClient = null
+                };
+
+                // Act.
+                var result =
+                    (Response) authenticationProviderCallback.Process(nancyModule, authenticationCallbackResult);
+
+                // Assert.
+                // Not sure how to do this yet.
+                result.StatusCode.ShouldBe(HttpStatusCode.OK);
+                result.ContentType.ShouldBe("application/json; charset=utf-8");
+            }
+        }
+
+        public class OnErrorFacts
+        {
+            [Fact]
+            public void GivenAnAuthenticationError_Process_ReturnsAnUnauthorizedStatus()
+            {
+                // Arrange.
+                var fakeResponse = A.Fake<IResponseFormatter>();
+                A.CallTo(() => fakeResponse.Serializers).Returns(new[] { new DefaultJsonSerializer() });
+
+                var nancyModule = A.Fake<INancyModule>();
+                A.CallTo(() => nancyModule.Response)
+                    .Returns(fakeResponse);
+
+                var view = new ViewRenderer(nancyModule);
+                A.CallTo(() => nancyModule.View).Returns(view);
+                var authenticationProviderCallback = new SampleJsonAuthenticationProviderCallback();
+
+                // Act.
+                var result = (Response)authenticationProviderCallback.OnError(nancyModule, 
+                    ErrorType.Callback,
+                    new AuthenticationException("Didn't accept", errorStatusCode: System.Net.HttpStatusCode.Unauthorized));
+
+                // Assert.
+                // Not sure how to do this yet.
+                result.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+                result.ContentType.ShouldBe("application/json; charset=utf-8");
             }
 
-            [Fact(Skip = "TODO")]
-            public void GivenNoAuthenticatedClientAndAReturnUrl_Process_ReturnsARedirection()
+            [Fact]
+            public void GivenAnAuthenticationError_Process_ReturnsAnInternalServerErrorStatus()
             {
+                // Arrange.
+                var fakeResponse = A.Fake<IResponseFormatter>();
+                A.CallTo(() => fakeResponse.Serializers).Returns(new[] { new DefaultJsonSerializer() });
+
+                var nancyModule = A.Fake<INancyModule>();
+                A.CallTo(() => nancyModule.Response)
+                    .Returns(fakeResponse);
+
+                var view = new ViewRenderer(nancyModule);
+                A.CallTo(() => nancyModule.View).Returns(view);
+                var authenticationProviderCallback = new SampleJsonAuthenticationProviderCallback();
+
+                // Act.
+                var result = (Response)authenticationProviderCallback.OnError(nancyModule,
+                    ErrorType.Callback,
+                    new AuthenticationException("Failed state check."));
+
+                // Assert.
+                // Not sure how to do this yet.
+                result.StatusCode.ShouldBe(HttpStatusCode.InternalServerError);
+                result.ContentType.ShouldBe("application/json; charset=utf-8");
             }
         }
     }
