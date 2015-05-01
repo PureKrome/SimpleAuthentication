@@ -1,2 +1,10 @@
 before_build:
   - nuget restore
+
+version: '{build}'
+
+configuration: Release
+
+build:
+  parallel: true
+  verbosity: minimal
