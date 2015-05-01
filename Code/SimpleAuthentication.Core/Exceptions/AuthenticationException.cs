@@ -27,7 +27,7 @@ namespace SimpleAuthentication.Core.Exceptions
         /// <param name="errorStatusCode">Optional: the status code of this error.</param>
         /// <remarks>Sometimes an error occurs with an associated error message. Eg. Tried to retrieve some data from the Authentication Provider but some bad credentials were provided so a 403 FORBIDDEN was returned.</remarks>
         public AuthenticationException(string message, 
-            Exception innerException,
+            Exception innerException = null,
             HttpStatusCode errorStatusCode = HttpStatusCode.InternalServerError) : base(message, innerException)
         {
             HttpStatusCode = errorStatusCode;
